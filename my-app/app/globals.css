@@ -1,13 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0e27;
+  --foreground: #ffffff;
+
+  /* XPlanet Space Theme Colors */
+  --cosmic-navy: #0a0e27;
+  --nebula-purple: #6a4c93;
+  --star-blue: #00d9ff;
+  --meteor-gold: #ffd700;
+  --planet-teal: #1dd3b0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-cosmic-navy: var(--cosmic-navy);
+  --color-nebula-purple: var(--nebula-purple);
+  --color-star-blue: var(--star-blue);
+  --color-meteor-gold: var(--meteor-gold);
+  --color-planet-teal: var(--planet-teal);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
