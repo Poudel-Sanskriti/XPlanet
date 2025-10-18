@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@react-three/drei": "^10.7.6",
+    "@react-three/fiber": "^9.4.0",
     "framer-motion": "^12.23.24",
     "howler": "^2.2.4",
     "lucide-react": "^0.546.0",
@@ -17,6 +19,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.3.0",
+    "three": "^0.180.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
