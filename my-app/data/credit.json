@@ -1,0 +1,33 @@
+{
+  "score": 680,
+  "scoreHistory": [
+    { "month": "Jan", "score": 650 },
+    { "month": "Feb", "score": 660 },
+    { "month": "Mar", "score": 665 },
+    { "month": "Apr", "score": 675 },
+    { "month": "May", "score": 680 }
+  ],
+  "utilization": 30,
+  "totalCredit": 10000,
+  "usedCredit": 3000,
+  "accounts": 3,
+  "paymentHistory": 98,
+  "averageAge": "3 years 2 months",
+  "tips": [
+    {
+      "icon": "💡",
+      "title": "Pay down your balance",
+      "description": "Reduce your credit utilization below 30% to improve your score"
+    },
+    {
+      "icon": "📅",
+      "title": "Never miss a payment",
+      "description": "Payment history is 35% of your credit score"
+    },
+    {
+      "icon": "🎯",
+      "title": "Keep old accounts open",
+      "description": "Length of credit history matters for your score"
+    }
+  ]
+}
