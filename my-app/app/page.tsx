@@ -1,14 +1,17 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Searching:', searchQuery);
-    // Will connect to Captain Gemini later
+    // Navigate to chat page
+    router.push('/chat');
   };
 
   // Generate stars once and keep them static (don't regenerate on re-render)
@@ -128,6 +131,22 @@ export default function Home() {
         <p className="text-white/70 text-center text-lg max-w-md">
           Navigate your financial galaxy with AI-powered guidance
         </p>
+
+        {/* Quick Links */}
+        <div className="flex gap-4 mt-4">
+          <Link
+            href="/constellation"
+            className="px-6 py-3 bg-purple-600/20 backdrop-blur-md border border-purple-400/30 text-purple-200 rounded-full hover:bg-purple-600/30 hover:border-purple-400/50 transition-all shadow-lg font-medium"
+          >
+            🌌 View Galaxy Map
+          </Link>
+          <Link
+            href="/chat"
+            className="px-6 py-3 bg-cyan-600/20 backdrop-blur-md border border-cyan-400/30 text-cyan-200 rounded-full hover:bg-cyan-600/30 hover:border-cyan-400/50 transition-all shadow-lg font-medium"
+          >
+            💬 Chat with Captain
+          </Link>
+        </div>
       </div>
 
       {/* Custom CSS for orbit animation with rotation */}
