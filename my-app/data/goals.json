@@ -1,0 +1,43 @@
+{
+  "goals": [
+    {
+      "id": "emergency-fund",
+      "name": "Emergency Fund",
+      "target": 5000,
+      "current": 2000,
+      "deadline": "2025-12-31",
+      "color": "#ffd700",
+      "icon": "🛡️"
+    },
+    {
+      "id": "vacation",
+      "name": "Dream Vacation",
+      "target": 3000,
+      "current": 800,
+      "deadline": "2025-08-15",
+      "color": "#1dd3b0",
+      "icon": "✈️"
+    },
+    {
+      "id": "car",
+      "name": "New Car Down Payment",
+      "target": 8000,
+      "current": 3200,
+      "deadline": "2026-06-01",
+      "color": "#6a4c93",
+      "icon": "🚗"
+    },
+    {
+      "id": "education",
+      "name": "Online Courses",
+      "target": 1500,
+      "current": 1200,
+      "deadline": "2025-05-01",
+      "color": "#00d9ff",
+      "icon": "📚"
+    }
+  ],
+  "totalSaved": 7200,
+  "totalTarget": 17500,
+  "monthlyContribution": 600
+}
