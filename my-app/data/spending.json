@@ -1,0 +1,55 @@
+{
+  "totalBudget": 3500,
+  "totalSpent": 2850,
+  "categories": [
+    {
+      "name": "Rent",
+      "amount": 1200,
+      "budget": 1200,
+      "color": "#6a4c93"
+    },
+    {
+      "name": "Food & Dining",
+      "amount": 450,
+      "budget": 500,
+      "color": "#ffd700"
+    },
+    {
+      "name": "Transportation",
+      "amount": 350,
+      "budget": 400,
+      "color": "#00d9ff"
+    },
+    {
+      "name": "Entertainment",
+      "amount": 200,
+      "budget": 300,
+      "color": "#1dd3b0"
+    },
+    {
+      "name": "Utilities",
+      "amount": 180,
+      "budget": 200,
+      "color": "#ff6b6b"
+    },
+    {
+      "name": "Shopping",
+      "amount": 270,
+      "budget": 400,
+      "color": "#a29bfe"
+    },
+    {
+      "name": "Healthcare",
+      "amount": 200,
+      "budget": 300,
+      "color": "#fd79a8"
+    }
+  ],
+  "monthlyTrend": [
+    { "month": "Jan", "spent": 2650, "budget": 3500 },
+    { "month": "Feb", "spent": 2800, "budget": 3500 },
+    { "month": "Mar", "spent": 2950, "budget": 3500 },
+    { "month": "Apr", "spent": 2700, "budget": 3500 },
+    { "month": "May", "spent": 2850, "budget": 3500 }
+  ]
+}
