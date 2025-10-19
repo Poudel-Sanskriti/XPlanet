@@ -95,15 +95,27 @@ export default function PlanetPage() {
     other: '#6b7280',
   };
 
+  // Use Plaid data if available, otherwise fall back to manual expenses
+  const useRealData = userData.plaidConnected && Object.keys(spendingByCategory).length > 0;
+
   const spendingData = {
     totalBudget,
-    totalSpent,
-    categories: Object.entries(userData.expenses).map(([name, amount]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      amount,
-      budget: (totalBudget / Object.keys(userData.expenses).length), // Distribute budget evenly
-      color: categoryColors[name] || '#6b7280',
-    })),
+    totalSpent: useRealData
+      ? Object.values(spendingByCategory).reduce((sum, val) => sum + val, 0)
+      : totalSpent,
+    categories: useRealData
+      ? Object.entries(spendingByCategory).map(([name, amount]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          amount,
+          budget: (totalBudget / Object.keys(spendingByCategory).length),
+          color: categoryColors[name] || '#6b7280',
+        }))
+      : Object.entries(userData.expenses).map(([name, amount]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          amount,
+          budget: (totalBudget / Object.keys(userData.expenses).length),
+          color: categoryColors[name] || '#6b7280',
+        })),
     monthlyTrend: [
       { month: 'Jan', spent: totalSpent * 0.9, budget: totalBudget },
       { month: 'Feb', spent: totalSpent * 0.95, budget: totalBudget },
