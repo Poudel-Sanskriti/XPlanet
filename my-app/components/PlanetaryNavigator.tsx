@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, useAnimation, useMotionValue, animate } from 'framer-motion';
 import { ParallaxStars } from './ParallaxStars';
 import { PlanetScene } from './Planet3D';
+import SaturnModel from './SaturnModel';
 import { UserProfileBadge } from './UserProfileBadge';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -21,7 +22,7 @@ const PLANETS: PlanetConfig[] = [
   { type: 'earth', name: 'Home', route: '/', position: 0 },
   { type: 'mars', name: 'Credit & Loans', route: '/planet/credit', position: 1 },
   { type: 'jupiter', name: 'Budgeting & Goals', route: '/planet/budget', position: 2 },
-  { type: 'saturn', name: 'Insurance', route: '/planet/insurance', position: 3 },
+  { type: 'saturn', name: 'Investment', route: '/planet/investment', position: 3 },
 ];
 
 const PLANET_DIAMETER = 600; // Doubled from 300
@@ -343,7 +344,14 @@ export function PlanetaryNavigator() {
               }}
               onClick={() => handlePlanetClick(index)}
             >
-              <PlanetScene type={planet.type} className="w-full h-full cursor-pointer" />
+              {/* Render Saturn 3D model with rings for Saturn, regular planets for others */}
+              {planet.type === 'saturn' ? (
+                <div className="w-full h-full cursor-pointer">
+                  <SaturnModel />
+                </div>
+              ) : (
+                <PlanetScene type={planet.type} className="w-full h-full cursor-pointer" />
+              )}
 
               {/* Click hint - only show for non-home planets when active */}
               {index !== 0 && index === orbitingPlanetIndex && (
