@@ -25,7 +25,14 @@ export interface UserProfile {
     current: number;
   }[];
   hasCompletedOnboarding: boolean;
-  // Plaid integration fields
+  // Plaid integration fields - support multiple banks
+  plaidAccounts?: Array<{
+    accessToken: string;
+    itemId: string;
+    institutionName: string;
+    institutionId: string;
+  }>;
+  // Legacy single bank support (for backward compatibility)
   plaidAccessToken?: string;
   plaidItemId?: string;
   plaidConnected?: boolean;
