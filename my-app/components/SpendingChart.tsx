@@ -24,6 +24,15 @@ interface SpendingChartProps {
 }
 
 export function SpendingChart({ data }: SpendingChartProps) {
+  // Safety checks for data
+  if (!data || typeof data.totalBudget === 'undefined' || typeof data.totalSpent === 'undefined') {
+    return (
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-cyan-500/30 rounded-2xl p-6">
+        <p className="text-gray-400">Loading spending data...</p>
+      </div>
+    );
+  }
+
   const remainingBudget = data.totalBudget - data.totalSpent;
   const percentSpent = ((data.totalSpent / data.totalBudget) * 100).toFixed(1);
 

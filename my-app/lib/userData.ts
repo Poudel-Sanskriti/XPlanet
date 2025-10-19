@@ -7,6 +7,10 @@ export interface UserProfile {
   expenses: {
     rent: number;
     utilities: number;
+    food: number;
+    transportation: number;
+    entertainment: number;
+    other: number;
   };
   debts: {
     studentLoans: number;
@@ -31,6 +35,10 @@ export const DEFAULT_USER_DATA: UserProfile = {
   expenses: {
     rent: 1200,
     utilities: 150,
+    food: 400,
+    transportation: 200,
+    entertainment: 150,
+    other: 100,
   },
   debts: {
     studentLoans: 45000,
@@ -81,7 +89,11 @@ export function updateUserProfile(updates: Partial<UserProfile>): void {
 export function getUserMetrics(userData: UserProfile) {
   const totalExpenses =
     userData.expenses.rent +
-    userData.expenses.utilities;
+    userData.expenses.utilities +
+    userData.expenses.food +
+    userData.expenses.transportation +
+    userData.expenses.entertainment +
+    userData.expenses.other;
 
   const totalDebts =
     userData.debts.studentLoans +

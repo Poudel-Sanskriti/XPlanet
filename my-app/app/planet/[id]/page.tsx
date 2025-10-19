@@ -49,8 +49,14 @@ export default function PlanetPage() {
   }, []);
 
   // Redirect if invalid planet
+  useEffect(() => {
+    if (!planetInfo[planetId as keyof typeof planetInfo]) {
+      router.push('/');
+    }
+  }, [planetId, router]);
+
+  // Don't render if invalid planet
   if (!planetInfo[planetId as keyof typeof planetInfo]) {
-    router.push('/constellation');
     return null;
   }
 
@@ -66,11 +72,33 @@ export default function PlanetPage() {
   }
 
   // Transform user data for spending chart
+  const totalSpent = Object.values(userData.expenses).reduce((sum, val) => sum + val, 0);
+  const totalBudget = userData.income || totalSpent * 1.2; // Use income as budget, or 120% of expenses
+
+  // Define colors for each category
+  const categoryColors: { [key: string]: string } = {
+    rent: '#ef4444',
+    utilities: '#f59e0b',
+    food: '#10b981',
+    transportation: '#3b82f6',
+    entertainment: '#8b5cf6',
+    other: '#6b7280',
+  };
+
   const spendingData = {
+    totalBudget,
+    totalSpent,
     categories: Object.entries(userData.expenses).map(([name, amount]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
       amount,
+      budget: (totalBudget / Object.keys(userData.expenses).length), // Distribute budget evenly
+      color: categoryColors[name] || '#6b7280',
     })),
+    monthlyTrend: [
+      { month: 'Jan', spent: totalSpent * 0.9, budget: totalBudget },
+      { month: 'Feb', spent: totalSpent * 0.95, budget: totalBudget },
+      { month: 'Mar', spent: totalSpent, budget: totalBudget },
+    ],
   };
 
   // Transform user data for credit
@@ -78,10 +106,41 @@ export default function PlanetPage() {
   const usedCredit = userData.debts.creditCards;
   const creditData = {
     score: userData.creditScore,
+    scoreHistory: [
+      { month: 'Jan', score: userData.creditScore - 20 },
+      { month: 'Feb', score: userData.creditScore - 15 },
+      { month: 'Mar', score: userData.creditScore - 10 },
+      { month: 'Apr', score: userData.creditScore - 5 },
+      { month: 'May', score: userData.creditScore },
+    ],
     utilization: Math.min(100, (usedCredit / totalCredit) * 100),
     accounts: Object.values(userData.debts).filter(v => v > 0).length,
     usedCredit: usedCredit,
     totalCredit: totalCredit,
+    paymentHistory: 98, // 98% on-time payments
+    averageAge: '3.5 years',
+    tips: [
+      {
+        icon: '💳',
+        title: 'Lower Credit Utilization',
+        description: `Keep your credit card balance below 30% of your limit. Currently at ${Math.round((usedCredit / totalCredit) * 100)}%.`
+      },
+      {
+        icon: '📅',
+        title: 'Pay Bills On Time',
+        description: 'Set up automatic payments to ensure you never miss a due date.'
+      },
+      {
+        icon: '📊',
+        title: 'Monitor Your Credit',
+        description: 'Check your credit report regularly for errors or fraudulent activity.'
+      },
+      {
+        icon: '⏰',
+        title: 'Keep Old Accounts Open',
+        description: 'The age of your credit history matters. Keep older accounts active.'
+      }
+    ]
   };
 
   // Transform user data for goals
