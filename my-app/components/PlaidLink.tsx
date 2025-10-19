@@ -58,8 +58,22 @@ export function PlaidLink({ onSuccess, onExit }: PlaidLinkProps) {
         if (data.success) {
           // Save access token to user data
           const userData = getUserData();
+
+          // Initialize plaidAccounts array if it doesn't exist
+          const existingAccounts = userData.plaidAccounts || [];
+
+          // Add new account to the array
+          const newAccount = {
+            accessToken: data.access_token,
+            itemId: data.item_id,
+            institutionName: metadata.institution?.name || 'Bank',
+            institutionId: metadata.institution?.institution_id || '',
+          };
+
           updateUserData({
             ...userData,
+            plaidAccounts: [...existingAccounts, newAccount],
+            // Also update legacy fields for backward compatibility
             plaidAccessToken: data.access_token,
             plaidItemId: data.item_id,
             plaidConnected: true,
@@ -102,46 +116,62 @@ export function PlaidLink({ onSuccess, onExit }: PlaidLinkProps) {
   });
 
   const userData = getUserData();
-  const isConnected = userData?.plaidConnected;
-
-  if (isConnected) {
-    return (
-      <div className="text-center p-6 bg-green-500/10 border border-green-500/30 rounded-xl">
-        <div className="text-4xl mb-3">✅</div>
-        <h3 className="text-xl font-bold text-green-400 mb-2">Bank Connected</h3>
-        <p className="text-gray-300">
-          {userData.plaidInstitution} is connected and syncing your transactions.
-        </p>
-      </div>
-    );
-  }
+  const connectedBanks = userData?.plaidAccounts || [];
+  const hasConnectedBanks = connectedBanks.length > 0;
 
   return (
-    <div className="text-center">
-      <motion.button
-        onClick={() => open()}
-        disabled={!ready || isConnecting}
-        className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600
-                   hover:from-blue-700 hover:to-cyan-700
-                   text-white font-bold rounded-full
-                   shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70
-                   disabled:opacity-50 disabled:cursor-not-allowed
-                   transition-all duration-300"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        {isConnecting ? (
-          <span className="flex items-center gap-2">
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Connecting...
-          </span>
-        ) : (
-          '🔗 Connect Your Bank Account'
+    <div className="space-y-4">
+      {/* Show connected banks */}
+      {hasConnectedBanks && (
+        <div className="space-y-3">
+          {connectedBanks.map((bank, index) => (
+            <div
+              key={bank.itemId}
+              className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">✅</div>
+                <div>
+                  <h4 className="font-bold text-green-400">{bank.institutionName}</h4>
+                  <p className="text-sm text-gray-400">Connected and syncing</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Button to connect another bank */}
+      <div className="text-center">
+        <motion.button
+          onClick={() => open()}
+          disabled={!ready || isConnecting}
+          className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600
+                     hover:from-blue-700 hover:to-cyan-700
+                     text-white font-bold rounded-full
+                     shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     transition-all duration-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isConnecting ? (
+            <span className="flex items-center gap-2">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Connecting...
+            </span>
+          ) : hasConnectedBanks ? (
+            '➕ Connect Another Bank'
+          ) : (
+            '🔗 Connect Your Bank Account'
+          )}
+        </motion.button>
+        {!hasConnectedBanks && (
+          <p className="mt-4 text-sm text-gray-400">
+            Securely link your bank to automatically track spending
+          </p>
         )}
-      </motion.button>
-      <p className="mt-4 text-sm text-gray-400">
-        Securely link your bank to automatically track spending
-      </p>
+      </div>
     </div>
   );
 }
