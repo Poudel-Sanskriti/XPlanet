@@ -6,24 +6,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { text } = body;
 
-    console.log('Voice API received text:', text);
-    console.log('Text type:', typeof text);
-    console.log('Text length:', text?.length);
-
     if (!text || typeof text !== 'string') {
-      console.error('Invalid text:', text);
       return NextResponse.json(
         { error: 'Text is required and must be a string' },
-        { status: 400 }
-      );
-    }
-
-    // Limit text length to avoid excessive API usage
-    // ElevenLabs supports up to 5000 characters, we'll allow 2500
-    if (text.length > 2500) {
-      console.error('Text too long:', text.length, 'characters');
-      return NextResponse.json(
-        { error: `Text too long (${text.length} characters, max 2500)` },
         { status: 400 }
       );
     }

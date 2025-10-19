@@ -4,14 +4,14 @@ import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '@/lib/store';
 import { getUserData } from '@/lib/userData';
 import { Message } from './Message';
-import { Send, Sparkles } from 'lucide-react';
+import { Send, Sparkles, Paperclip, X, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SUGGESTED_QUESTIONS = [
   "How do I start budgeting?",
   "What's a good credit score?",
   "How can I save money?",
-  "What are financial goals?",
+  "📎 Upload a financial document to translate",
 ];
 
 const MAX_CHARS = 500;
@@ -19,8 +19,11 @@ const MAX_CHARS = 500;
 export function ChatInterface() {
   const [input, setInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileContent, setFileContent] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { messages, isLoading, addMessage, setLoading } = useChatStore();
 
@@ -34,48 +37,127 @@ export function ChatInterface() {
     inputRef.current?.focus();
   }, []);
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    const isText = file.type.includes('text') || file.name.endsWith('.txt');
+
+    if (!isText) {
+      alert('Please upload a text file (.txt). For PDFs, please copy and paste the text.');
+      return;
+    }
+
+    setUploadedFile(file);
+
+    // Read file content
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      setFileContent(text);
+    };
+    reader.onerror = () => {
+      alert('Failed to read file. Please try again.');
+      setUploadedFile(null);
+    };
+    reader.readAsText(file);
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    setFileContent('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const sendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
+    if ((!text.trim() && !uploadedFile) || isLoading) return;
 
     // Hide suggestions after first message
     setShowSuggestions(false);
 
+    // Determine if this is a document translation request
+    const isDocumentRequest = uploadedFile || fileContent;
+
     // Add user message
-    addMessage({
-      role: 'user',
-      content: text.trim(),
-    });
+    if (isDocumentRequest) {
+      addMessage({
+        role: 'user',
+        content: text.trim() || 'Please explain this document in plain English.',
+        metadata: {
+          hasDocument: true,
+          fileName: uploadedFile?.name,
+        },
+      });
+    } else {
+      addMessage({
+        role: 'user',
+        content: text.trim(),
+      });
+    }
 
     setInput('');
     setLoading(true);
 
     try {
-      // Get current user data for personalized responses
-      const userData = getUserData();
+      if (isDocumentRequest) {
+        // Handle document translation
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            documentText: fileContent,
+          }),
+        });
 
-      // Call Gemini API with user context
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: text.trim(),
-          userData: userData
-        }),
-      });
+        if (!response.ok) {
+          throw new Error('Failed to translate document');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
+        const data = await response.json();
+
+        // Add assistant message with translation
+        addMessage({
+          role: 'assistant',
+          content: data.explanation || 'I apologize, Navigator. I could not analyze the document.',
+          metadata: {
+            isDocumentResponse: true,
+          },
+        });
+
+        // Clear file after processing
+        removeFile();
+      } else {
+        // Handle regular chat
+        const userData = getUserData();
+
+        const response = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question: text.trim(),
+            userData: userData
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get response');
+        }
+
+        const data = await response.json();
+
+        // Add assistant message
+        addMessage({
+          role: 'assistant',
+          content: data.response || data.text || 'I apologize, Navigator. My response systems are offline.',
+        });
       }
-
-      const data = await response.json();
-
-      // Add assistant message
-      addMessage({
-        role: 'assistant',
-        content: data.response || data.text || 'I apologize, Navigator. My response systems are offline.',
-      });
     } catch (error) {
       console.error('Error sending message:', error);
       addMessage({
@@ -101,8 +183,12 @@ export function ChatInterface() {
   };
 
   const handleSuggestedQuestion = (question: string) => {
-    setInput(question);
-    sendMessage(question);
+    if (question.includes('Upload a financial document')) {
+      fileInputRef.current?.click();
+    } else {
+      setInput(question);
+      sendMessage(question);
+    }
   };
 
   const charCount = input.length;
@@ -198,15 +284,49 @@ export function ChatInterface() {
       {/* Input Area */}
       <div className="flex-shrink-0 border-t border-cyan-500/30 bg-gray-900/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
+          {/* File Upload Preview */}
+          {uploadedFile && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-3 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-cyan-400" />
+                <div>
+                  <p className="text-sm text-white font-medium">{uploadedFile.name}</p>
+                  <p className="text-xs text-gray-400">
+                    {(uploadedFile.size / 1024).toFixed(2)} KB • Ready to analyze
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={removeFile}
+                className="p-1 hover:bg-red-500/20 rounded-full transition-colors"
+              >
+                <X className="w-4 h-4 text-red-400" />
+              </button>
+            </motion.div>
+          )}
+
           <form onSubmit={handleSubmit} className="relative">
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,text/plain"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Captain Gemini anything..."
+              placeholder={uploadedFile ? "Add a question about the document (optional)..." : "Ask Captain Gemini anything..."}
               rows={1}
-              className="w-full px-4 py-3 pr-24 rounded-2xl bg-gray-800 border border-cyan-500/30
+              className="w-full px-4 py-3 pl-12 pr-24 rounded-2xl bg-gray-800 border border-cyan-500/30
                        text-white placeholder-gray-500 resize-none focus:outline-none
                        focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/20
                        transition-all"
@@ -216,17 +336,30 @@ export function ChatInterface() {
               }}
             />
 
+            {/* Attachment Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute left-3 top-3 p-2 rounded-full hover:bg-cyan-500/20
+                       text-cyan-400 transition-all"
+              title="Attach document"
+            >
+              <Paperclip className="w-5 h-5" />
+            </button>
+
             {/* Character Count */}
-            <div className="absolute right-16 top-3 text-xs text-gray-500">
-              <span className={isOverLimit ? 'text-red-500' : ''}>
-                {charCount}/{MAX_CHARS}
-              </span>
-            </div>
+            {!uploadedFile && (
+              <div className="absolute right-16 top-3 text-xs text-gray-500">
+                <span className={isOverLimit ? 'text-red-500' : ''}>
+                  {charCount}/{MAX_CHARS}
+                </span>
+              </div>
+            )}
 
             {/* Send Button */}
             <button
               type="submit"
-              disabled={!input.trim() || isLoading || isOverLimit}
+              disabled={((!input.trim() && !uploadedFile) || isLoading || (isOverLimit && !uploadedFile))}
               className="absolute right-3 top-3 p-2 rounded-full bg-gradient-to-br
                        from-cyan-500 to-blue-600 text-white disabled:opacity-50
                        disabled:cursor-not-allowed hover:scale-110 transition-transform"
@@ -236,7 +369,9 @@ export function ChatInterface() {
           </form>
 
           <p className="text-xs text-gray-500 mt-2 text-center">
-            Press Enter to send, Shift+Enter for new line
+            {uploadedFile
+              ? "📎 Document attached • Click send to analyze"
+              : "Press Enter to send, Shift+Enter for new line • 📎 Click to attach documents"}
           </p>
         </div>
       </div>

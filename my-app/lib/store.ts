@@ -6,6 +6,11 @@ export interface Message {
   content: string;
   timestamp: number;
   audioUrl?: string;
+  metadata?: {
+    hasDocument?: boolean;
+    fileName?: string;
+    isDocumentResponse?: boolean;
+  };
 }
 
 interface ChatStore {

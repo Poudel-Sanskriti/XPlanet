@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Message as MessageType } from '@/lib/store';
 import { VoicePlayer } from './VoicePlayer';
+import { FileText } from 'lucide-react';
 
 interface MessageProps {
   message: MessageType;
@@ -28,17 +29,41 @@ export function Message({ message }: MessageProps) {
 
         {/* Message Content */}
         <div className={`flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
+          {/* Document indicator for user messages */}
+          {isUser && message.metadata?.hasDocument && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-xs text-cyan-300">
+              <FileText className="w-3 h-3" />
+              <span>{message.metadata.fileName}</span>
+            </div>
+          )}
+
           <div className={`rounded-2xl px-4 py-3 ${
             isUser
               ? 'bg-gradient-to-br from-purple-600 to-pink-600 text-white'
-              : 'bg-gray-800 text-gray-100 border border-cyan-500/30'
+              : message.metadata?.isDocumentResponse
+                ? 'bg-gradient-to-br from-blue-900/50 to-cyan-900/50 text-gray-100 border border-cyan-500/50'
+                : 'bg-gray-800 text-gray-100 border border-cyan-500/30'
           }`}>
+            {/* Document response header */}
+            {message.metadata?.isDocumentResponse && (
+              <div className="flex items-center gap-2 mb-3 pb-3 border-b border-cyan-500/30">
+                <FileText className="w-5 h-5 text-cyan-400" />
+                <span className="text-sm font-semibold text-cyan-300">Document Analysis</span>
+              </div>
+            )}
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
           </div>
 
-          {/* Voice Player for assistant messages */}
-          {!isUser && message.content && (
+          {/* Voice Player for assistant messages (disabled for very long document responses) */}
+          {!isUser && message.content && message.content.length < 5000 && (
             <VoicePlayer text={message.content} />
+          )}
+
+          {/* Show note for very long responses */}
+          {!isUser && message.content && message.content.length >= 5000 && (
+            <p className="text-xs text-gray-500 italic">
+              Voice playback disabled for very long responses
+            </p>
           )}
 
           {/* Timestamp */}
