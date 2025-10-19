@@ -15,22 +15,30 @@ export function VoicePlayer({ text, autoPlay = false }: VoicePlayerProps) {
   const [sound, setSound] = useState<Howl | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
-  // Generate audio when component mounts or text changes
+  // Cleanup sound on unmount
   useEffect(() => {
-    if (text && autoPlay) {
-      handlePlay();
-    }
-    // Cleanup sound on unmount
     return () => {
       if (sound) {
         sound.unload();
       }
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
     };
-  }, [text]);
+  }, [sound, audioUrl]);
+
+  // Handle autoplay
+  useEffect(() => {
+    if (text && autoPlay) {
+      handlePlay();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, autoPlay]);
 
   const generateAudio = async (): Promise<string> => {
     setIsLoading(true);
     try {
+      console.log('Sending text to voice API:', text);
       const response = await fetch('/api/voice', {
         method: 'POST',
         headers: {
@@ -40,7 +48,9 @@ export function VoicePlayer({ text, autoPlay = false }: VoicePlayerProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate audio');
+        const errorData = await response.json();
+        console.error('Voice API error response:', errorData);
+        throw new Error(errorData.error || 'Failed to generate audio');
       }
 
       const audioBlob = await response.blob();

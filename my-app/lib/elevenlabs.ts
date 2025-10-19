@@ -1,5 +1,5 @@
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || '';
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'pNInz6obpgDQGcFmaJgB';
+const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL'; // Sarah - Professional female voice
 const ELEVENLABS_API_URL = 'https://api.elevenlabs.io/v1';
 
 export interface VoiceGenerationResult {
@@ -29,7 +29,7 @@ export async function generateSpeech(text: string): Promise<VoiceGenerationResul
         },
         body: JSON.stringify({
           text,
-          model_id: 'eleven_monolingual_v1', // Fast and efficient
+          model_id: 'eleven_turbo_v2_5', // Latest fast model with high quality
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
