@@ -10,7 +10,7 @@ import JupiterModel from './JupiterModel';
 import SaturnModel from './SaturnModel';
 import { UserProfileBadge } from './UserProfileBadge';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, FileText, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 
 type PlanetType = 'earth' | 'mars' | 'jupiter' | 'saturn';
 
@@ -478,24 +478,8 @@ export function PlanetaryNavigator() {
         </motion.div>
       </div>
 
-      {/* Floating Action Buttons - Bottom Right */}
-      <div className="fixed bottom-8 right-8 z-40 flex flex-col gap-4">
-        {/* Document Translator Button */}
-        <motion.button
-          onClick={() => router.push('/translate')}
-          className="group p-4 rounded-full bg-gradient-to-br from-purple-600 to-pink-600
-                   hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/50
-                   hover:shadow-purple-500/70 transition-all flex items-center gap-3"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          title="Translate Financial Documents"
-        >
-          <FileText className="w-6 h-6 text-white" />
-          <span className="text-white font-semibold max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300">
-            Translate Document
-          </span>
-        </motion.button>
-
+      {/* Floating Action Button - Bottom Right */}
+      <div className="fixed bottom-8 right-8 z-40">
         {/* Chat Button */}
         <motion.button
           onClick={() => router.push('/chat')}
