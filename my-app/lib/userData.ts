@@ -25,6 +25,11 @@ export interface UserProfile {
     current: number;
   }[];
   hasCompletedOnboarding: boolean;
+  // Plaid integration fields
+  plaidAccessToken?: string;
+  plaidItemId?: string;
+  plaidConnected?: boolean;
+  plaidInstitution?: string;
 }
 
 // Default mock data (for demo purposes)
@@ -83,6 +88,11 @@ export function saveUserData(data: Partial<UserProfile>): void {
 // Update specific fields
 export function updateUserProfile(updates: Partial<UserProfile>): void {
   saveUserData(updates);
+}
+
+// Update user data (alias for saveUserData)
+export function updateUserData(data: Partial<UserProfile>): void {
+  saveUserData(data);
 }
 
 // Calculate derived metrics

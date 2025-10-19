@@ -11,6 +11,9 @@ import { GoalProgressBars } from '@/components/GoalProgressBars';
 import { InsuranceOverview } from '@/components/InsuranceOverview';
 import { InvestmentPlanner } from '@/components/InvestmentPlanner';
 import { getUserData, getUserMetrics } from '@/lib/userData';
+import { usePlaidTransactions } from '@/hooks/usePlaidTransactions';
+import { TransactionList } from '@/components/TransactionList';
+import { PlaidLink } from '@/components/PlaidLink';
 
 // Import fallback data
 import insuranceData from '@/data/insurance.json';
@@ -42,6 +45,9 @@ export default function PlanetPage() {
   const planetId = params.id as string;
   const [userData, setUserData] = useState(getUserData());
   const [metrics, setMetrics] = useState(getUserMetrics(userData));
+
+  // Fetch Plaid transactions
+  const { transactions, spendingByCategory, loading: plaidLoading, refresh } = usePlaidTransactions();
 
   useEffect(() => {
     const data = getUserData();
@@ -210,6 +216,36 @@ export default function PlanetPage() {
         >
           {planetId === 'budget' && (
             <div className="space-y-12">
+              {/* Plaid Connection Section */}
+              {!userData.plaidConnected && (
+                <div className="p-6 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-2xl">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    📊 Connect Your Bank for Real-Time Tracking
+                  </h3>
+                  <p className="text-gray-300 mb-6">
+                    Automatically sync your transactions and get accurate spending insights without manual entry.
+                  </p>
+                  <PlaidLink onSuccess={refresh} />
+                </div>
+              )}
+
+              {/* Show Plaid Transactions if connected */}
+              {userData.plaidConnected && transactions.length > 0 && (
+                <div>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-3xl font-bold text-white">Recent Transactions</h2>
+                    <button
+                      onClick={refresh}
+                      disabled={plaidLoading}
+                      className="px-4 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg border border-cyan-500/50 transition-all disabled:opacity-50"
+                    >
+                      {plaidLoading ? '🔄 Syncing...' : '🔄 Refresh'}
+                    </button>
+                  </div>
+                  <TransactionList transactions={transactions} />
+                </div>
+              )}
+
               <div>
                 <h2 className="text-3xl font-bold text-white mb-6">Spending Overview</h2>
                 <SpendingChart data={spendingData} />

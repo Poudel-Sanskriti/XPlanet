@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { saveUserData, completeOnboarding, type UserProfile } from '@/lib/userData';
 import { ArrowRight, ArrowLeft, Rocket } from 'lucide-react';
+import { PlaidLink } from '@/components/PlaidLink';
 
-type Step = 'welcome' | 'basic' | 'expenses' | 'debts' | 'goals' | 'complete';
+type Step = 'welcome' | 'basic' | 'expenses' | 'debts' | 'goals' | 'bank' | 'complete';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function OnboardingPage() {
     router.push('/');
   };
 
-  const steps: Step[] = ['welcome', 'basic', 'expenses', 'debts', 'goals', 'complete'];
+  const steps: Step[] = ['welcome', 'basic', 'expenses', 'debts', 'goals', 'bank', 'complete'];
   const currentStepIndex = steps.indexOf(step);
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
 
@@ -459,13 +460,76 @@ export default function OnboardingPage() {
                       { name: 'Dream Vacation', target: 3000, current: 0 },
                       { name: 'House Down Payment', target: 50000, current: 0 },
                     ]);
-                    setStep('complete');
+                    setStep('bank');
                   }}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl
                            font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all
                            flex items-center justify-center gap-2"
                 >
                   Complete Setup
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Bank Connection Step */}
+          {step === 'bank' && (
+            <motion.div
+              key="bank"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white/5 backdrop-blur-lg p-8 rounded-3xl border border-white/10"
+            >
+              <h2 className="text-3xl font-bold text-white mb-2">Connect Your Bank (Optional)</h2>
+              <p className="text-gray-400 mb-6">
+                Link your bank account to automatically track spending and get personalized insights.
+              </p>
+
+              <div className="space-y-6 mb-8">
+                <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
+                  <h4 className="text-white font-semibold mb-2">🔒 Secure & Private</h4>
+                  <p className="text-sm text-gray-300">
+                    We use bank-level encryption. We never see your login credentials and cannot move your money.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                  <h4 className="text-white font-semibold mb-2">📊 Auto-Sync Transactions</h4>
+                  <p className="text-sm text-gray-300">
+                    Your spending is automatically categorized and updated, saving you time.
+                  </p>
+                </div>
+
+                <PlaidLink onSuccess={() => {}} />
+              </div>
+
+              <div className="flex gap-4 mt-8">
+                <button
+                  onClick={() => setStep('goals')}
+                  className="px-6 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all
+                           flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep('complete')}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl
+                           font-semibold hover:shadow-lg transition-all
+                           flex items-center justify-center gap-2"
+                >
+                  Skip for Now
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setStep('complete')}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl
+                           font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all
+                           flex items-center justify-center gap-2"
+                >
+                  Continue
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
