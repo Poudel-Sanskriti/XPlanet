@@ -1,6 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { PlanetHeader } from '@/components/PlanetHeader';
@@ -8,11 +9,9 @@ import { SpendingChart } from '@/components/SpendingChart';
 import { CreditScoreGauge } from '@/components/CreditScoreGauge';
 import { GoalProgressBars } from '@/components/GoalProgressBars';
 import { InsuranceOverview } from '@/components/InsuranceOverview';
+import { getUserData, getUserMetrics } from '@/lib/userData';
 
-// Import data
-import spendingData from '@/data/spending.json';
-import creditData from '@/data/credit.json';
-import goalsData from '@/data/goals.json';
+// Import fallback data
 import insuranceData from '@/data/insurance.json';
 
 const planetInfo = {
@@ -40,6 +39,14 @@ export default function PlanetPage() {
   const params = useParams();
   const router = useRouter();
   const planetId = params.id as string;
+  const [userData, setUserData] = useState(getUserData());
+  const [metrics, setMetrics] = useState(getUserMetrics(userData));
+
+  useEffect(() => {
+    const data = getUserData();
+    setUserData(data);
+    setMetrics(getUserMetrics(data));
+  }, []);
 
   // Redirect if invalid planet
   if (!planetInfo[planetId as keyof typeof planetInfo]) {
@@ -48,6 +55,29 @@ export default function PlanetPage() {
   }
 
   const planet = planetInfo[planetId as keyof typeof planetInfo];
+
+  // Transform user data for spending chart
+  const spendingData = {
+    categories: Object.entries(userData.expenses).map(([name, amount]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      amount,
+    })),
+  };
+
+  // Transform user data for credit
+  const creditData = {
+    score: userData.creditScore,
+    utilization: Math.min(100, (userData.debts.creditCards / (userData.debts.creditCards + 5000)) * 100),
+    accounts: Object.values(userData.debts).filter(v => v > 0).length,
+  };
+
+  // Transform user data for goals
+  const goalsData = {
+    goals: userData.goals.map(goal => ({
+      ...goal,
+      progress: Math.round((goal.current / goal.target) * 100),
+    })),
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">

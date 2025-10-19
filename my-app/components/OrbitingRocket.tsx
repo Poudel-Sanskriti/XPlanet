@@ -57,13 +57,15 @@ export function OrbitingRocket({
     }
   }, [angle, isDragging, planetX, planetY, orbitRadius]);
 
-  // Calculate nose angle (tangent to orbit + 90 degrees)
+  // Calculate nose angle (tangent to orbit - parallel to motion)
   const getNoseAngle = () => {
     if (isDragging) {
       return dragAngle;
     }
-    // Tangent angle is orbit angle + 90 degrees (for clockwise)
-    return (angle + Math.PI / 2) * (180 / Math.PI);
+    // For clockwise orbit, tangent points in direction of motion
+    // Tangent is perpendicular to radius, in direction of rotation
+    // Since we rotate clockwise (positive angle increment), tangent is angle + 90 degrees
+    return ((angle + Math.PI / 2) * (180 / Math.PI));
   };
 
   const handleDragStart = () => {
