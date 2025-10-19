@@ -126,12 +126,12 @@ export default function ProfilePage() {
 
           {/* Expenses */}
           <div className="space-y-6 mb-8">
-            <h2 className="text-xl font-semibold text-white mb-4">Monthly Expenses</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <h2 className="text-xl font-semibold text-white mb-4">Monthly Fixed Expenses</h2>
+            <div className="grid grid-cols-2 gap-4">
               {Object.entries(formData.expenses).map(([key, value]) => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-300 mb-2 capitalize">
-                    {key}
+                    {key === 'rent' ? 'Rent/Mortgage' : 'Utilities'}
                   </label>
                   <input
                     type="number"

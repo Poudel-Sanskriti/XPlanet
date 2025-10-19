@@ -30,10 +30,39 @@ export interface GeminiResponse {
 }
 
 /**
- * Ask Captain Gemini a financial question
+ * Ask Captain Gemini a financial question with user context
  */
-export async function askGemini(question: string): Promise<GeminiResponse> {
+export async function askGemini(question: string, userData?: any): Promise<GeminiResponse> {
   try {
+    // Build context from user data
+    let contextPrompt = question;
+
+    if (userData) {
+      const monthlyIncome = Math.round((userData.income || 0) / 12);
+      const totalExpenses = userData.expenses
+        ? Object.values(userData.expenses).reduce((sum: number, val: any) => sum + (val || 0), 0)
+        : 0;
+      const totalDebts = userData.debts
+        ? Object.values(userData.debts).reduce((sum: number, val: any) => sum + (val || 0), 0)
+        : 0;
+
+      const context = `
+User Context:
+- Name: ${userData.name || 'Navigator'}
+- Age: ${userData.age || 'unknown'}
+- Monthly Income: $${monthlyIncome.toLocaleString()}
+- Total Monthly Expenses: $${totalExpenses.toLocaleString()}
+- Monthly Savings: $${Math.max(0, monthlyIncome - totalExpenses).toLocaleString()}
+- Credit Score: ${userData.creditScore || 'unknown'}
+- Total Debt: $${totalDebts.toLocaleString()}
+
+User's Question: ${question}
+
+Address the user by name (${userData.name || 'Navigator'}) and reference their specific financial situation when relevant.`;
+
+      contextPrompt = context;
+    }
+
     // Use Gemini 2.0 Flash (fast and efficient)
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.0-flash-exp',
@@ -41,7 +70,7 @@ export async function askGemini(question: string): Promise<GeminiResponse> {
     });
 
     // Generate response
-    const result = await model.generateContent(question);
+    const result = await model.generateContent(contextPrompt);
     const response = result.response;
     const text = response.text();
 
@@ -55,7 +84,7 @@ export async function askGemini(question: string): Promise<GeminiResponse> {
 
     // Fallback response if API fails
     return {
-      response: `Houston, we have a problem! 🛸 I'm having trouble connecting to my knowledge base right now. Please try again in a moment, Navigator!`,
+      response: `Houston, we have a problem! 🛸 I'm having trouble connecting to my knowledge base right now. Please try again in a moment, ${userData?.name || 'Navigator'}!`,
       cached: false,
       timestamp: Date.now(),
     };

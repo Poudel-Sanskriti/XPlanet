@@ -130,20 +130,43 @@ export function PlanetaryNavigator() {
     const rightPanZone = screenWidth * (5 / 6); // Right 1/6th
 
     const currentScroll = scrollX.get();
+    const centerX = screenWidth / 2;
 
     // Check if rocket is in panning zones
     if (x < leftPanZone) {
       // Pan left (towards previous planets)
       const minScroll = 0; // Earth boundary
       const panAmount = (leftPanZone - x) / leftPanZone; // 0 to 1
-      const targetScroll = currentScroll + panAmount * 8; // Slow scroll speed
-      scrollX.set(Math.min(minScroll, targetScroll));
+      // Slower panning: 2s per planet = screenWidth pixels in 2000ms at 60fps = screenWidth/120 per frame
+      const targetScroll = currentScroll + panAmount * (screenWidth / 120);
+      const newScroll = Math.min(minScroll, targetScroll);
+      scrollX.set(newScroll);
+
+      // Check if a new planet reached the midpoint
+      const planetAtCenter = Math.round(-newScroll / screenWidth);
+      if (planetAtCenter !== orbitingPlanetIndex) {
+        // Planet reached center, disable panning for 3s
+        setPanningEnabled(false);
+        setOrbitingPlanetIndex(planetAtCenter);
+        setTimeout(() => setPanningEnabled(true), 3000);
+      }
     } else if (x > rightPanZone) {
       // Pan right (towards next planets)
       const maxScroll = -(PLANETS.length - 1) * screenWidth; // Saturn boundary
       const panAmount = (x - rightPanZone) / (screenWidth - rightPanZone); // 0 to 1
-      const targetScroll = currentScroll - panAmount * 8; // Slow scroll speed
-      scrollX.set(Math.max(maxScroll, targetScroll));
+      // Slower panning: 2s per planet = screenWidth pixels in 2000ms at 60fps = screenWidth/120 per frame
+      const targetScroll = currentScroll - panAmount * (screenWidth / 120);
+      const newScroll = Math.max(maxScroll, targetScroll);
+      scrollX.set(newScroll);
+
+      // Check if a new planet reached the midpoint
+      const planetAtCenter = Math.round(-newScroll / screenWidth);
+      if (planetAtCenter !== orbitingPlanetIndex) {
+        // Planet reached center, disable panning for 3s
+        setPanningEnabled(false);
+        setOrbitingPlanetIndex(planetAtCenter);
+        setTimeout(() => setPanningEnabled(true), 3000);
+      }
     }
   };
 
@@ -213,12 +236,6 @@ export function PlanetaryNavigator() {
         setOrbitingPlanetIndex(nearestPlanetIndex);
         setRocketAngle(targetAngle);
         setIsFlying(false);
-
-        // Disable panning for 3 seconds after reaching new planet
-        setPanningEnabled(false);
-        setTimeout(() => {
-          setPanningEnabled(true);
-        }, 3000);
       },
     });
   };

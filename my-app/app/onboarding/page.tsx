@@ -17,11 +17,7 @@ export default function OnboardingPage() {
     income: 60000,
     expenses: {
       rent: 0,
-      food: 0,
-      transportation: 0,
-      entertainment: 0,
       utilities: 0,
-      other: 0,
     },
     debts: {
       studentLoans: 0,
@@ -232,17 +228,13 @@ export default function OnboardingPage() {
               exit={{ opacity: 0, x: -100 }}
               className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-cyan-500/30"
             >
-              <h2 className="text-3xl font-bold text-white mb-2">Monthly Expenses</h2>
-              <p className="text-gray-400 mb-6">Help us understand where your money goes</p>
+              <h2 className="text-3xl font-bold text-white mb-2">Monthly Fixed Expenses</h2>
+              <p className="text-gray-400 mb-6">Tell us about your non-discretionary expenses</p>
 
               <div className="grid grid-cols-2 gap-4">
                 {[
                   { key: 'rent', label: 'Rent/Mortgage', icon: '🏠' },
-                  { key: 'food', label: 'Food & Groceries', icon: '🍔' },
-                  { key: 'transportation', label: 'Transportation', icon: '🚗' },
-                  { key: 'entertainment', label: 'Entertainment', icon: '🎮' },
                   { key: 'utilities', label: 'Utilities', icon: '💡' },
-                  { key: 'other', label: 'Other', icon: '💳' },
                 ].map(({ key, label, icon }) => (
                   <div key={key}>
                     <label className="block text-sm font-medium text-gray-300 mb-2">

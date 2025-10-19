@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useChatStore } from '@/lib/store';
+import { getUserData } from '@/lib/userData';
 import { Message } from './Message';
 import { Send, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,13 +50,19 @@ export function ChatInterface() {
     setLoading(true);
 
     try {
-      // Call Gemini API
+      // Get current user data for personalized responses
+      const userData = getUserData();
+
+      // Call Gemini API with user context
       const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question: text.trim() }),
+        body: JSON.stringify({
+          question: text.trim(),
+          userData: userData
+        }),
       });
 
       if (!response.ok) {

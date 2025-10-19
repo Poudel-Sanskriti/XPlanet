@@ -4,7 +4,7 @@ import { askGemini } from '@/lib/gemini';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { question } = body;
+    const { question, userData } = body;
 
     if (!question || typeof question !== 'string') {
       return NextResponse.json(
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     // Rate limiting check (simple - can be improved)
     // TODO: Implement proper rate limiting with Redis or similar
 
-    // Call Gemini API
-    const result = await askGemini(question);
+    // Call Gemini API with user context
+    const result = await askGemini(question, userData);
 
     return NextResponse.json(result);
   } catch (error) {
