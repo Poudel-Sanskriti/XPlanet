@@ -24,9 +24,9 @@ function Model(props: JSX.IntrinsicElements['group']) {
     clonedScene.position.y = -center.y;
     clonedScene.position.z = -center.z;
 
-    // Normalize scale to fit within a unit sphere
+    // Normalize scale to fit within a unit sphere (made larger to show rings better)
     const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 2 / maxDim;
+    const scale = 3.8 / maxDim; // Increased from 2 to 3.8 (90% larger)
     clonedScene.scale.setScalar(scale);
 
     clonedScene.traverse((child) => {
@@ -36,6 +36,9 @@ function Model(props: JSX.IntrinsicElements['group']) {
         (meshChild.material as THREE.MeshStandardMaterial).roughness = 1;
       }
     });
+
+    // Tilt Saturn to show the rings better (20 degrees on X axis)
+    clonedScene.rotation.x = Math.PI * 0.11; // ~20 degrees
 
     return clonedScene;
   }, [scene]);
