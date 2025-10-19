@@ -9,6 +9,7 @@ import { SpendingChart } from '@/components/SpendingChart';
 import { CreditScoreGauge } from '@/components/CreditScoreGauge';
 import { GoalProgressBars } from '@/components/GoalProgressBars';
 import { InsuranceOverview } from '@/components/InsuranceOverview';
+import { InvestmentPlanner } from '@/components/InvestmentPlanner';
 import { getUserData, getUserMetrics } from '@/lib/userData';
 
 // Import fallback data
@@ -17,21 +18,21 @@ import insuranceData from '@/data/insurance.json';
 const planetInfo = {
   budget: {
     name: 'Budgeting & Goals',
-    color: '#ffd700',
+    color: '#ef4444',
     icon: '💰',
     tagline: 'Master Your Spending & Achieve Your Dreams',
+  },
+  investment: {
+    name: 'Investment',
+    color: '#fbbf24',
+    icon: '📈',
+    tagline: 'Grow Your Wealth with Smart Investing',
   },
   credit: {
     name: 'Credit & Loans',
     color: '#6a4c93',
     icon: '💳',
     tagline: 'Navigate Your Credit Universe',
-  },
-  insurance: {
-    name: 'Insurance',
-    color: '#f4a460',
-    icon: '🛡️',
-    tagline: 'Protect Your Financial Future',
   },
 };
 
@@ -71,11 +72,14 @@ export default function PlanetPage() {
     );
   }
 
-  // Transform user data for spending chart
+  // Calculate all base values first (to avoid reference errors)
+  const monthlyIncome = userData.income / 12;
   const totalSpent = Object.values(userData.expenses).reduce((sum, val) => sum + val, 0);
   const totalBudget = userData.income || totalSpent * 1.2; // Use income as budget, or 120% of expenses
+  const minDebtPayment = (userData.debts.studentLoans * 0.01 + userData.debts.creditCards * 0.02) / 12; // Rough estimate
+  const monthlyInvestable = Math.max(0, monthlyIncome - totalSpent - minDebtPayment);
 
-  // Define colors for each category
+  // Transform user data for spending chart
   const categoryColors: { [key: string]: string } = {
     rent: '#ef4444',
     utilities: '#f59e0b',
@@ -103,15 +107,15 @@ export default function PlanetPage() {
 
   // Transform user data for credit
   const totalCredit = 5000; // Assuming $5,000 total credit limit
-  const usedCredit = userData.debts.creditCards;
+  const usedCredit = userData.debts.creditCards || 0;
   const creditData = {
-    score: userData.creditScore,
+    score: userData.creditScore || 720,
     scoreHistory: [
-      { month: 'Jan', score: userData.creditScore - 20 },
-      { month: 'Feb', score: userData.creditScore - 15 },
-      { month: 'Mar', score: userData.creditScore - 10 },
-      { month: 'Apr', score: userData.creditScore - 5 },
-      { month: 'May', score: userData.creditScore },
+      { month: 'Jan', score: (userData.creditScore || 720) - 20 },
+      { month: 'Feb', score: (userData.creditScore || 720) - 15 },
+      { month: 'Mar', score: (userData.creditScore || 720) - 10 },
+      { month: 'Apr', score: (userData.creditScore || 720) - 5 },
+      { month: 'May', score: userData.creditScore || 720 },
     ],
     utilization: Math.min(100, (usedCredit / totalCredit) * 100),
     accounts: Object.values(userData.debts).filter(v => v > 0).length,
@@ -144,11 +148,36 @@ export default function PlanetPage() {
   };
 
   // Transform user data for goals
+  const totalSaved = userData.goals?.reduce((sum, goal) => sum + goal.current, 0) || 0;
+  const totalTarget = userData.goals?.reduce((sum, goal) => sum + goal.target, 0) || 1;
+  const goalsLength = userData.goals?.length || 1;
+  const monthlyContribution = Math.max(0, monthlyInvestable) / goalsLength;
+
   const goalsData = {
-    goals: userData.goals.map(goal => ({
+    goals: (userData.goals || []).map((goal, index) => ({
       ...goal,
+      id: `goal-${index}`,
       progress: Math.round((goal.current / goal.target) * 100),
+      deadline: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year from now
+      color: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'][index % 4],
+      icon: ['🎯', '✈️', '🏠', '🎓'][index % 4],
     })),
+    totalSaved,
+    totalTarget,
+    monthlyContribution: Math.max(0, monthlyContribution),
+  };
+
+  // Investment data
+  const yearlyInvestable = monthlyInvestable * 12;
+
+  const investmentData = {
+    monthlyInvestable,
+    yearlyInvestable,
+    monthlyIncome,
+    totalExpenses: totalSpent,
+    minDebtPayment,
+    age: userData.age || 25,
+    riskTolerance: (userData.age || 25) < 30 ? 'moderate-aggressive' : (userData.age || 25) < 50 ? 'moderate' : 'conservative',
   };
 
   return (
@@ -156,11 +185,11 @@ export default function PlanetPage() {
       {/* Back Button */}
       <div className="fixed top-6 left-6 z-50">
         <button
-          onClick={() => router.push('/constellation')}
+          onClick={() => router.push('/')}
           className="flex items-center gap-2 px-4 py-2 bg-gray-800/80 backdrop-blur-md border border-cyan-500/30 text-cyan-300 rounded-full hover:bg-gray-800 transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Galaxy
+          Back to Home
         </button>
       </div>
 
@@ -189,6 +218,12 @@ export default function PlanetPage() {
                 <h2 className="text-3xl font-bold text-white mb-6">Financial Goals</h2>
                 <GoalProgressBars data={goalsData} />
               </div>
+            </div>
+          )}
+
+          {planetId === 'investment' && (
+            <div className="space-y-8">
+              <InvestmentPlanner data={investmentData} />
             </div>
           )}
 

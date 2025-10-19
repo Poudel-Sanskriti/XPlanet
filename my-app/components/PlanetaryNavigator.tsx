@@ -24,9 +24,9 @@ interface PlanetConfig {
 
 const PLANETS: PlanetConfig[] = [
   { type: 'earth', name: 'Home', route: '/', position: 0 },
-  { type: 'mars', name: 'Credit & Loans', route: '/planet/credit', position: 1 },
-  { type: 'jupiter', name: 'Budgeting & Goals', route: '/planet/budget', position: 2 },
-  { type: 'saturn', name: 'Investment', route: '/planet/investment', position: 3 },
+  { type: 'mars', name: 'Budgeting & Goals', route: '/planet/budget', position: 1 },
+  { type: 'jupiter', name: 'Investment', route: '/planet/investment', position: 2 },
+  { type: 'saturn', name: 'Credit & Loans', route: '/planet/credit', position: 3 },
 ];
 
 const PLANET_DIAMETER = 600; // Doubled from 300

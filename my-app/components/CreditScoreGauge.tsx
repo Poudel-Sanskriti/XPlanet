@@ -28,6 +28,14 @@ interface CreditScoreGaugeProps {
 }
 
 export function CreditScoreGauge({ data }: CreditScoreGaugeProps) {
+  // Safety checks
+  if (!data || typeof data.score === 'undefined') {
+    return (
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-cyan-500/30 rounded-2xl p-6">
+        <p className="text-gray-400">Loading credit data...</p>
+      </div>
+    );
+  }
   // Determine score category
   const getScoreCategory = (score: number) => {
     if (score >= 800) return { text: 'Excellent', color: '#10b981' };

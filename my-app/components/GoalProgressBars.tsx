@@ -25,7 +25,18 @@ interface GoalProgressBarsProps {
 }
 
 export function GoalProgressBars({ data }: GoalProgressBarsProps) {
-  const overallProgress = (data.totalSaved / data.totalTarget) * 100;
+  // Safety checks
+  if (!data || !data.goals || data.goals.length === 0 || typeof data.totalSaved === 'undefined' || typeof data.totalTarget === 'undefined') {
+    return (
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-cyan-500/30 rounded-2xl p-6">
+        <p className="text-gray-400">No financial goals set yet. Add goals in your profile to track progress!</p>
+      </div>
+    );
+  }
+
+  const totalSaved = data.totalSaved || 0;
+  const totalTarget = data.totalTarget || 1;
+  const overallProgress = (totalSaved / totalTarget) * 100;
 
   const getDaysRemaining = (deadline: string) => {
     const today = new Date();
@@ -49,8 +60,8 @@ export function GoalProgressBars({ data }: GoalProgressBarsProps) {
             <DollarSign className="w-5 h-5 text-teal-400" />
             <span className="text-sm text-gray-400">Total Saved</span>
           </div>
-          <div className="text-3xl font-bold text-teal-400">${data.totalSaved.toLocaleString()}</div>
-          <div className="text-sm text-gray-500 mt-1">of ${data.totalTarget.toLocaleString()}</div>
+          <div className="text-3xl font-bold text-teal-400">${totalSaved.toLocaleString()}</div>
+          <div className="text-sm text-gray-500 mt-1">of ${totalTarget.toLocaleString()}</div>
         </motion.div>
 
         <motion.div
