@@ -27,6 +27,9 @@ export function PlanetaryNavigator() {
   const [currentPlanetIndex, setCurrentPlanetIndex] = useState(0);
   const [isPanning, setIsPanning] = useState(false);
   const [rocketDragPos, setRocketDragPos] = useState<{ x: number; y: number } | null>(null);
+  const [screenWidth, setScreenWidth] = useState(1920);
+  const [screenHeight, setScreenHeight] = useState(1080);
+  const [isMounted, setIsMounted] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollX = useMotionValue(0);
@@ -34,18 +37,41 @@ export function PlanetaryNavigator() {
   const router = useRouter();
 
   const currentPlanet = PLANETS[currentPlanetIndex];
-  const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
   const orbitRadius = 180; // Distance from planet center to rocket
+
+  // Handle screen dimensions after mount
+  useEffect(() => {
+    setScreenWidth(window.innerWidth);
+    setScreenHeight(window.innerHeight);
+    setIsMounted(true);
+
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+      setScreenHeight(window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Calculate planet center position
   const getPlanetCenter = (planetIndex: number) => {
     const baseX = screenWidth / 2;
-    const baseY = typeof window !== 'undefined' ? window.innerHeight / 2 : 400;
+    const baseY = screenHeight / 2;
     return {
       x: baseX - (currentPlanetIndex * screenWidth) + (planetIndex * screenWidth),
       y: baseY,
     };
   };
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="relative w-screen h-screen overflow-hidden bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
+        <div className="text-white text-xl">Loading XPlanet...</div>
+      </div>
+    );
+  }
 
   // Pan to a specific planet
   const panToPlanet = async (planetIndex: number) => {
