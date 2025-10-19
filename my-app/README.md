@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# xPlanit 🚀
 
-## Getting Started
+**Navigate the Confusing Galaxy of Finance with AI That Actually Explains Things**
 
-First, run the development server:
+AI-powered financial education platform that makes banking transparent and understandable. Built for HackTX 2025.
 
+---
+
+## ✨ Features
+
+- 🚀 **3D Interactive Navigation** - Explore 4 planets (Home, Budget, Investment, Credit) with beautiful Three.js graphics
+- 🤖 **AI Financial Advisor** - Chat with Captain Gemini (powered by Google Gemini 2.0) for personalized advice
+- 📄 **Document Translator** - Upload financial documents, get plain English explanations with AI
+- 🏦 **Multiple Bank Connections** - Auto-sync transactions via Plaid, auto-populate your profile
+- 🔊 **Voice Responses** - ElevenLabs text-to-speech for accessibility
+- 📊 **Smart Tracking** - Visualize spending, credit score, goals, and investment plans
+- ⚡ **2-Minute Onboarding** - Connect your bank and skip manual data entry
+
+---
+
+## 🛠️ Tech Stack
+
+**Frontend:** Next.js 15, React 18, TypeScript, Tailwind CSS, Framer Motion
+**3D Graphics:** Three.js, React Three Fiber
+**AI & APIs:** Google Gemini 2.0, Plaid API, ElevenLabs API
+**Data:** Zustand, Recharts, localStorage
+
+---
+
+## 🚀 Quick Start
+
+1. **Clone and install:**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Poudel-Sanskriti/xPlanit.git
+cd xPlanit/my-app
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Create `.env.local`:**
+```env
+GEMINI_API_KEY=your_gemini_key
+PLAID_CLIENT_ID=your_plaid_id
+PLAID_SECRET=your_plaid_secret
+PLAID_ENV=sandbox
+ELEVENLABS_API_KEY=your_elevenlabs_key
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Run:**
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000)
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🔑 Get API Keys
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Gemini:** [Google AI Studio](https://aistudio.google.com/app/apikey) (free)
+- **Plaid:** [Plaid Dashboard](https://dashboard.plaid.com/signup) (free sandbox)
+- **ElevenLabs:** [ElevenLabs](https://elevenlabs.io/) (10k chars/month free)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📁 Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+app/
+├── api/           # Gemini, Plaid, Voice, Investment endpoints
+├── onboarding/    # 5-step onboarding flow
+├── chat/          # AI chat interface
+├── planet/[id]/   # Budget, Investment, Credit pages
+└── page.tsx       # 3D planetary navigator
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+components/        # React components (3D models, charts, UI)
+lib/              # Gemini, Plaid, userData, AI analysis
+```
+
+---
+
+## 💡 How It Works
+
+**Connect your bank** → AI analyzes transactions → Detects income, categorizes spending, extracts debts → Auto-fills your profile → Chat with Captain Gemini for personalized advice
+
+---
+
+## 🙏 Credits
+
+Built with Google Gemini AI, Plaid, and ElevenLabs for HackTX 2025.
+
+**Keep navigating, Navigator! 🚀**
