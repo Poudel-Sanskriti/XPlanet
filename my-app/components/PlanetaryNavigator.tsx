@@ -362,10 +362,10 @@ export function PlanetaryNavigator() {
             >
               {/* Render 3D models for all planets */}
               <div className="w-full h-full cursor-pointer">
-                {planet.type === 'earth' && <EarthModel />}
-                {planet.type === 'mars' && <MarsModel />}
-                {planet.type === 'jupiter' && <JupiterModel />}
-                {planet.type === 'saturn' && <SaturnModel />}
+                {planet.type === 'earth' && <EarthModel key="earth" />}
+                {planet.type === 'mars' && <MarsModel key="mars" />}
+                {planet.type === 'jupiter' && <JupiterModel key="jupiter" />}
+                {planet.type === 'saturn' && <SaturnModel key="saturn" />}
               </div>
 
               {/* Click hint - only show for non-home planets when active */}
