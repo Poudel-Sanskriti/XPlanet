@@ -11,6 +11,7 @@ import SaturnModel from './SaturnModel';
 import { UserProfileBadge } from './UserProfileBadge';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
+import Image from 'next/image';
 
 type PlanetType = 'earth' | 'mars' | 'jupiter' | 'saturn';
 
@@ -322,6 +323,18 @@ export function PlanetaryNavigator() {
       ref={containerRef}
       className="relative w-screen h-screen overflow-hidden"
     >
+      {/* Logo - Top Left */}
+      <div className="fixed top-6 left-6 z-50">
+        <Image
+          src="/xplanit-logo.png"
+          alt="XPlanet Logo"
+          width={250}
+          height={90}
+          className="object-contain"
+          priority
+        />
+      </div>
+
       {/* User Profile Badge */}
       <UserProfileBadge />
 
