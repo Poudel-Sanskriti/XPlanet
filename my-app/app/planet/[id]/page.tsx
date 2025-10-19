@@ -56,6 +56,15 @@ export default function PlanetPage() {
 
   const planet = planetInfo[planetId as keyof typeof planetInfo];
 
+  // Safety check for user data
+  if (!userData || !userData.expenses || !userData.debts || !userData.goals) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   // Transform user data for spending chart
   const spendingData = {
     categories: Object.entries(userData.expenses).map(([name, amount]) => ({
@@ -65,10 +74,14 @@ export default function PlanetPage() {
   };
 
   // Transform user data for credit
+  const totalCredit = 5000; // Assuming $5,000 total credit limit
+  const usedCredit = userData.debts.creditCards;
   const creditData = {
     score: userData.creditScore,
-    utilization: Math.min(100, (userData.debts.creditCards / (userData.debts.creditCards + 5000)) * 100),
+    utilization: Math.min(100, (usedCredit / totalCredit) * 100),
     accounts: Object.values(userData.debts).filter(v => v > 0).length,
+    usedCredit: usedCredit,
+    totalCredit: totalCredit,
   };
 
   // Transform user data for goals

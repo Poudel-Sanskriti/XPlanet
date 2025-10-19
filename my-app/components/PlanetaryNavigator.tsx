@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, useAnimation, useMotionValue, animate } from 'framer-motion';
 import { ParallaxStars } from './ParallaxStars';
 import { PlanetScene } from './Planet3D';
+import EarthModel from './EarthModel';
+import MarsModel from './MarsModel';
+import JupiterModel from './JupiterModel';
 import SaturnModel from './SaturnModel';
 import { UserProfileBadge } from './UserProfileBadge';
 import { useRouter } from 'next/navigation';
@@ -344,14 +347,13 @@ export function PlanetaryNavigator() {
               }}
               onClick={() => handlePlanetClick(index)}
             >
-              {/* Render Saturn 3D model with rings for Saturn, regular planets for others */}
-              {planet.type === 'saturn' ? (
-                <div className="w-full h-full cursor-pointer">
-                  <SaturnModel />
-                </div>
-              ) : (
-                <PlanetScene type={planet.type} className="w-full h-full cursor-pointer" />
-              )}
+              {/* Render 3D models for all planets */}
+              <div className="w-full h-full cursor-pointer">
+                {planet.type === 'earth' && <EarthModel />}
+                {planet.type === 'mars' && <MarsModel />}
+                {planet.type === 'jupiter' && <JupiterModel />}
+                {planet.type === 'saturn' && <SaturnModel />}
+              </div>
 
               {/* Click hint - only show for non-home planets when active */}
               {index !== 0 && index === orbitingPlanetIndex && (

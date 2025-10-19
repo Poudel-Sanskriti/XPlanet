@@ -6,17 +6,13 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 function Model(props: any) {
-  // FIX #1: We are telling TypeScript that this ref will hold a THREE.Group.
   const groupRef = useRef<THREE.Group>(null);
-  const { scene } = useGLTF('/saturn.glb'); 
+  const { scene } = useGLTF('/realistic_jupiter.glb');
 
   useEffect(() => {
     scene.traverse((child) => {
-      // FIX #2: We are checking if the child is a Mesh before accessing its material.
-      // We also cast it as THREE.Mesh to let TypeScript know its type.
       if ((child as THREE.Mesh).isMesh) {
         const meshChild = child as THREE.Mesh;
-        // Now TypeScript knows that meshChild.material is valid.
         (meshChild.material as THREE.MeshStandardMaterial).metalness = 0;
         (meshChild.material as THREE.MeshStandardMaterial).roughness = 1;
       }
@@ -25,8 +21,7 @@ function Model(props: any) {
 
   useFrame(() => {
     if (groupRef.current) {
-      // FIX #3: TypeScript now knows groupRef.current can have a 'rotation' property.
-      groupRef.current.rotation.y += 0.03; 
+      groupRef.current.rotation.y += 0.03;
     }
   });
 
@@ -37,18 +32,18 @@ function Model(props: any) {
   );
 }
 
-export default function SaturnModel() {
+export default function JupiterModel() {
   return (
-    <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
+    <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
       <Environment preset="sunset" />
 
       <Suspense fallback={null}>
-        <Bounds fit clip observe margin={0.37}>
+        <Bounds fit clip observe margin={1.5} damping={0}>
           <Model />
         </Bounds>
       </Suspense>
 
-      <OrbitControls makeDefault enableZoom={false} enablePan={false} />
+      <OrbitControls makeDefault enableZoom={false} enablePan={false} target={[0, 0, 0]} />
     </Canvas>
   );
 }
