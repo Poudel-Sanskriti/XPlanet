@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { saveUserData, completeOnboarding, type UserProfile } from '@/lib/userData';
+import { saveUserData, completeOnboarding, updateUserData, getUserData, type UserProfile } from '@/lib/userData';
 import { ArrowRight, ArrowLeft, Rocket } from 'lucide-react';
 import { PlaidLink } from '@/components/PlaidLink';
+import { analyzePlaidData } from '@/lib/plaidDataAnalyzer';
+import Image from 'next/image';
 
-type Step = 'welcome' | 'basic' | 'expenses' | 'debts' | 'goals' | 'bank' | 'complete';
+type Step = 'welcome' | 'basic' | 'bank' | 'loading' | 'complete';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -44,18 +46,81 @@ export default function OnboardingPage() {
     }));
   };
 
+
   const handleComplete = () => {
     saveUserData(formData);
     completeOnboarding();
     router.push('/');
   };
 
-  const steps: Step[] = ['welcome', 'basic', 'expenses', 'debts', 'goals', 'bank', 'complete'];
+  const handlePlaidSuccess = async () => {
+    setStep('loading');
+
+    try {
+      // Get the updated user data with Plaid token
+      const userData = getUserData();
+
+      if (!userData.plaidAccessToken) {
+        throw new Error('No Plaid access token found');
+      }
+
+      // Fetch transactions and accounts
+      const [transactionsRes, accountsRes] = await Promise.all([
+        fetch('/api/plaid/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: userData.plaidAccessToken }),
+        }),
+        fetch('/api/plaid/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: userData.plaidAccessToken }),
+        }),
+      ]);
+
+      const transactionsData = await transactionsRes.json();
+      const accountsData = await accountsRes.json();
+
+      // Analyze the data and auto-populate user profile
+      const analyzedData = analyzePlaidData(
+        transactionsData.transactions || [],
+        accountsData.accounts || []
+      );
+
+      // Update user data with analyzed info
+      updateUserData({
+        ...formData,
+        income: analyzedData.income,
+        expenses: {
+          ...analyzedData.expenses,
+          food: analyzedData.expenses.food,
+          transportation: analyzedData.expenses.transportation,
+          entertainment: analyzedData.expenses.entertainment,
+          other: analyzedData.expenses.other,
+        },
+        debts: analyzedData.debts,
+        creditScore: 700, // Default, user can update later
+        goals: [
+          { name: 'Emergency Fund', target: 10000, current: 0 },
+          { name: 'Retirement', target: 50000, current: 0 },
+        ],
+      });
+
+      setStep('complete');
+    } catch (error) {
+      console.error('Error analyzing Plaid data:', error);
+      // Still proceed but with defaults
+      setStep('complete');
+    }
+  };
+
+  const steps: Step[] = ['welcome', 'basic', 'bank', 'loading', 'complete'];
   const currentStepIndex = steps.indexOf(step);
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#000833] to-[#06135C] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#000833] to-[#06135C] flex items-center justify-center p-4">{/* Clean gradient background */}
+
       {/* Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-gray-800 z-50">
         <motion.div
@@ -83,9 +148,17 @@ export default function OnboardingPage() {
               >
                 <Rocket className="w-24 h-24 mx-auto text-cyan-400" />
               </motion.div>
-              <h1 className="text-5xl font-bold text-white">
-                Welcome to <span className="text-cyan-400">XPlanet</span>
-              </h1>
+              <div className="flex flex-col items-center gap-4">
+                <h1 className="text-5xl font-bold text-white">Welcome to</h1>
+                <Image
+                  src="/xplanit-logo.png"
+                  alt="XPlanit Logo"
+                  width={300}
+                  height={108}
+                  className="object-contain"
+                  priority
+                />
+              </div>
               <p className="text-xl text-gray-300">
                 Your journey through the financial galaxy begins here.
                 <br />
@@ -206,7 +279,7 @@ export default function OnboardingPage() {
                   Back
                 </button>
                 <button
-                  onClick={() => setStep('expenses')}
+                  onClick={() => setStep('bank')}
                   disabled={!formData.name || !formData.age || !formData.income}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl
                            font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all
@@ -220,73 +293,44 @@ export default function OnboardingPage() {
             </motion.div>
           )}
 
-          {/* Expenses Step */}
-          {step === 'expenses' && (
+          {/* Bank Connection Step */}
+          {step === 'bank' && (
             <motion.div
-              key="expenses"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-cyan-500/30"
+              key="bank"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-white/5 backdrop-blur-lg p-8 rounded-3xl border border-white/10 max-w-2xl mx-auto"
             >
-              <h2 className="text-3xl font-bold text-white mb-2">Monthly Fixed Expenses</h2>
-              <p className="text-gray-400 mb-6">Tell us about your non-discretionary expenses</p>
+              <h2 className="text-3xl font-bold text-white mb-2">Connect Your Bank</h2>
+              <p className="text-gray-400 mb-6">
+                We'll automatically analyze your transactions to set up your financial profile. No manual entry needed!
+              </p>
 
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { key: 'rent', label: 'Rent/Mortgage', icon: '🏠' },
-                  { key: 'utilities', label: 'Utilities', icon: '💡' },
-                ].map(({ key, label, icon }) => (
-                  <div key={key}>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      {icon} {label}
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-3 text-gray-400">$</span>
-                      <input
-                        type="number"
-                        value={(formData.expenses as any)?.[key] || 0}
-                        onChange={(e) =>
-                          updateNestedField('expenses', key, parseInt(e.target.value) || 0)
-                        }
-                        min="0"
-                        step="10"
-                        className="w-full pl-8 pr-4 py-3 bg-white/10 border border-cyan-500/30 rounded-xl
-                                 text-white focus:outline-none focus:border-cyan-400
-                                 focus:ring-2 focus:ring-cyan-400/20"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div className="space-y-4 mb-8">
+                <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
+                  <h4 className="text-white font-semibold mb-2">🔒 Bank-Level Security</h4>
+                  <p className="text-sm text-gray-300">
+                    We use 256-bit encryption. We never see your password and cannot access your money.
+                  </p>
+                </div>
 
-              <div className="mt-6 p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
-                <div className="flex justify-between text-white">
-                  <span>Total Monthly Expenses:</span>
-                  <span className="font-bold">
-                    $
-                    {Object.values(formData.expenses || {})
-                      .reduce((sum, val) => sum + (val || 0), 0)
-                      .toLocaleString()}
-                  </span>
+                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                  <h4 className="text-white font-semibold mb-2">🤖 Auto-Population Magic</h4>
+                  <p className="text-sm text-gray-300">
+                    We'll detect your income, categorize expenses, and identify debts automatically from your transactions.
+                  </p>
                 </div>
-                <div className="flex justify-between text-gray-300 mt-2">
-                  <span>Monthly Income:</span>
-                  <span>${Math.round((formData.income || 0) / 12).toLocaleString()}</span>
+
+                <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+                  <h4 className="text-white font-semibold mb-2">⚡ Done in 30 Seconds</h4>
+                  <p className="text-sm text-gray-300">
+                    Connect once and you're done. No forms, no guessing, just real data.
+                  </p>
                 </div>
-                <div className="flex justify-between text-cyan-400 mt-2 font-bold">
-                  <span>Monthly Savings:</span>
-                  <span>
-                    $
-                    {Math.max(
-                      0,
-                      Math.round((formData.income || 0) / 12) -
-                        Object.values(formData.expenses || {}).reduce(
-                          (sum, val) => sum + (val || 0),
-                          0
-                        )
-                    ).toLocaleString()}
-                  </span>
+
+                <div className="mt-6">
+                  <PlaidLink onSuccess={handlePlaidSuccess} />
                 </div>
               </div>
 
@@ -299,239 +343,37 @@ export default function OnboardingPage() {
                   <ArrowLeft className="w-5 h-5" />
                   Back
                 </button>
-                <button
-                  onClick={() => setStep('debts')}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl
-                           font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all
-                           flex items-center justify-center gap-2"
-                >
-                  Next
-                  <ArrowRight className="w-5 h-5" />
-                </button>
+                {(getUserData()?.plaidConnected || (getUserData()?.plaidAccounts && getUserData()?.plaidAccounts!.length > 0)) && (
+                  <button
+                    onClick={handlePlaidSuccess}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl
+                             font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all
+                             flex items-center justify-center gap-2"
+                  >
+                    Continue
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </motion.div>
           )}
 
-          {/* Debts Step */}
-          {step === 'debts' && (
+          {/* Loading Step */}
+          {step === 'loading' && (
             <motion.div
-              key="debts"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-cyan-500/30"
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center space-y-8"
             >
-              <h2 className="text-3xl font-bold text-white mb-2">Current Debts</h2>
-              <p className="text-gray-400 mb-6">
-                Don't worry - we'll help you navigate through them
-              </p>
-
-              <div className="space-y-4">
-                {[
-                  { key: 'studentLoans', label: 'Student Loans', icon: '🎓' },
-                  { key: 'creditCards', label: 'Credit Cards', icon: '💳' },
-                  { key: 'auto', label: 'Auto Loan', icon: '🚗' },
-                  { key: 'other', label: 'Other Debts', icon: '📝' },
-                ].map(({ key, label, icon }) => (
-                  <div key={key}>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      {icon} {label}
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-3 text-gray-400">$</span>
-                      <input
-                        type="number"
-                        value={(formData.debts as any)?.[key] || 0}
-                        onChange={(e) =>
-                          updateNestedField('debts', key, parseInt(e.target.value) || 0)
-                        }
-                        min="0"
-                        step="100"
-                        className="w-full pl-8 pr-4 py-3 bg-white/10 border border-cyan-500/30 rounded-xl
-                                 text-white focus:outline-none focus:border-cyan-400
-                                 focus:ring-2 focus:ring-cyan-400/20"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
-                <div className="flex justify-between text-white">
-                  <span>Total Debt:</span>
-                  <span className="font-bold">
-                    $
-                    {Object.values(formData.debts || {})
-                      .reduce((sum, val) => sum + (val || 0), 0)
-                      .toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mt-8">
-                <button
-                  onClick={() => setStep('expenses')}
-                  className="px-6 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all
-                           flex items-center gap-2"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  Back
-                </button>
-                <button
-                  onClick={() => setStep('goals')}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl
-                           font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all
-                           flex items-center justify-center gap-2"
-                >
-                  Next
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Goals Step */}
-          {step === 'goals' && (
-            <motion.div
-              key="goals"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              className="bg-white/5 backdrop-blur-md rounded-3xl p-8 border border-cyan-500/30"
-            >
-              <h2 className="text-3xl font-bold text-white mb-2">Financial Goals</h2>
-              <p className="text-gray-400 mb-6">What are you working towards?</p>
-
-              <div className="space-y-4 mb-6">
-                <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
-                  <p className="text-white">
-                    ✨ You can add custom goals later! For now, we'll set up some common ones for
-                    you.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="p-4 bg-white/5 rounded-xl border border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">💰</span>
-                      <div className="flex-1">
-                        <h4 className="text-white font-semibold">Emergency Fund</h4>
-                        <p className="text-sm text-gray-400">Target: $10,000</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-white/5 rounded-xl border border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">✈️</span>
-                      <div className="flex-1">
-                        <h4 className="text-white font-semibold">Dream Vacation</h4>
-                        <p className="text-sm text-gray-400">Target: $3,000</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-white/5 rounded-xl border border-gray-700">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">🏡</span>
-                      <div className="flex-1">
-                        <h4 className="text-white font-semibold">House Down Payment</h4>
-                        <p className="text-sm text-gray-400">Target: $50,000</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mt-8">
-                <button
-                  onClick={() => setStep('debts')}
-                  className="px-6 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all
-                           flex items-center gap-2"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  Back
-                </button>
-                <button
-                  onClick={() => {
-                    // Set default goals
-                    updateField('goals', [
-                      { name: 'Emergency Fund', target: 10000, current: 0 },
-                      { name: 'Dream Vacation', target: 3000, current: 0 },
-                      { name: 'House Down Payment', target: 50000, current: 0 },
-                    ]);
-                    setStep('bank');
-                  }}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl
-                           font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all
-                           flex items-center justify-center gap-2"
-                >
-                  Complete Setup
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Bank Connection Step */}
-          {step === 'bank' && (
-            <motion.div
-              key="bank"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-white/5 backdrop-blur-lg p-8 rounded-3xl border border-white/10"
-            >
-              <h2 className="text-3xl font-bold text-white mb-2">Connect Your Bank (Optional)</h2>
-              <p className="text-gray-400 mb-6">
-                Link your bank account to automatically track spending and get personalized insights.
-              </p>
-
-              <div className="space-y-6 mb-8">
-                <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
-                  <h4 className="text-white font-semibold mb-2">🔒 Secure & Private</h4>
-                  <p className="text-sm text-gray-300">
-                    We use bank-level encryption. We never see your login credentials and cannot move your money.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-                  <h4 className="text-white font-semibold mb-2">📊 Auto-Sync Transactions</h4>
-                  <p className="text-sm text-gray-300">
-                    Your spending is automatically categorized and updated, saving you time.
-                  </p>
-                </div>
-
-                <PlaidLink onSuccess={() => {}} />
-              </div>
-
-              <div className="flex gap-4 mt-8">
-                <button
-                  onClick={() => setStep('goals')}
-                  className="px-6 py-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all
-                           flex items-center gap-2"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  Back
-                </button>
-                <button
-                  onClick={() => setStep('complete')}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl
-                           font-semibold hover:shadow-lg transition-all
-                           flex items-center justify-center gap-2"
-                >
-                  Skip for Now
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setStep('complete')}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl
-                           font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all
-                           flex items-center justify-center gap-2"
-                >
-                  Continue
-                  <ArrowRight className="w-5 h-5" />
-                </button>
+              <div className="w-24 h-24 mx-auto border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-4">Analyzing Your Financial Data...</h2>
+                <p className="text-gray-400">
+                  We're detecting your income, categorizing expenses, and setting up your profile.
+                  <br />
+                  This will only take a moment!
+                </p>
               </div>
             </motion.div>
           )}
