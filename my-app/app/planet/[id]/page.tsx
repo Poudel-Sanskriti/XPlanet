@@ -7,30 +7,32 @@ import { PlanetHeader } from '@/components/PlanetHeader';
 import { SpendingChart } from '@/components/SpendingChart';
 import { CreditScoreGauge } from '@/components/CreditScoreGauge';
 import { GoalProgressBars } from '@/components/GoalProgressBars';
+import { InsuranceOverview } from '@/components/InsuranceOverview';
 
 // Import data
 import spendingData from '@/data/spending.json';
 import creditData from '@/data/credit.json';
 import goalsData from '@/data/goals.json';
+import insuranceData from '@/data/insurance.json';
 
 const planetInfo = {
   budget: {
-    name: 'Budget Galaxy',
+    name: 'Budgeting & Goals',
     color: '#ffd700',
     icon: '💰',
-    tagline: 'Master Your Spending Orbit',
+    tagline: 'Master Your Spending & Achieve Your Dreams',
   },
   credit: {
-    name: 'Credit Nebula',
+    name: 'Credit & Loans',
     color: '#6a4c93',
     icon: '💳',
     tagline: 'Navigate Your Credit Universe',
   },
-  goals: {
-    name: 'Goals Constellation',
-    color: '#1dd3b0',
-    icon: '🎯',
-    tagline: 'Chart Your Financial Destiny',
+  insurance: {
+    name: 'Insurance',
+    color: '#f4a460',
+    icon: '🛡️',
+    tagline: 'Protect Your Financial Future',
   },
 };
 
@@ -76,8 +78,15 @@ export default function PlanetPage() {
           transition={{ delay: 0.2 }}
         >
           {planetId === 'budget' && (
-            <div className="space-y-8">
-              <SpendingChart data={spendingData} />
+            <div className="space-y-12">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-6">Spending Overview</h2>
+                <SpendingChart data={spendingData} />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-6">Financial Goals</h2>
+                <GoalProgressBars data={goalsData} />
+              </div>
             </div>
           )}
 
@@ -87,9 +96,9 @@ export default function PlanetPage() {
             </div>
           )}
 
-          {planetId === 'goals' && (
+          {planetId === 'insurance' && (
             <div className="space-y-8">
-              <GoalProgressBars data={goalsData} />
+              <InsuranceOverview data={insuranceData} />
             </div>
           )}
         </motion.div>

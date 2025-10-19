@@ -1,0 +1,64 @@
+{
+  "policies": [
+    {
+      "id": "health",
+      "name": "Health Insurance",
+      "provider": "BlueCross",
+      "premium": 450,
+      "coverage": 50000,
+      "status": "active",
+      "icon": "🏥"
+    },
+    {
+      "id": "auto",
+      "name": "Auto Insurance",
+      "provider": "State Farm",
+      "premium": 120,
+      "coverage": 25000,
+      "status": "active",
+      "icon": "🚗"
+    },
+    {
+      "id": "life",
+      "name": "Life Insurance",
+      "provider": "MetLife",
+      "premium": 85,
+      "coverage": 100000,
+      "status": "active",
+      "icon": "❤️"
+    }
+  ],
+  "totalMonthlyPremium": 655,
+  "totalCoverage": 175000,
+  "recommendations": [
+    {
+      "title": "Consider Renters Insurance",
+      "description": "Protect your belongings for as low as $15/month",
+      "potential": 15000,
+      "icon": "🏠"
+    },
+    {
+      "title": "Increase Life Insurance",
+      "description": "Financial experts recommend 10x your annual salary",
+      "potential": 400000,
+      "icon": "📈"
+    }
+  ],
+  "savingsTips": [
+    {
+      "icon": "💡",
+      "title": "Bundle Policies",
+      "description": "Save 10-25% by combining auto and home insurance with one provider"
+    },
+    {
+      "icon": "🎯",
+      "title": "Review Annually",
+      "description": "Shop around each year - you could save hundreds by switching providers"
+    },
+    {
+      "icon": "📊",
+      "title": "Raise Deductibles",
+      "description": "Increasing your deductible from $500 to $1000 can lower premiums by 25%"
+    }
+  ]
+}
