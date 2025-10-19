@@ -368,22 +368,6 @@ export function PlanetaryNavigator() {
                 {planet.type === 'saturn' && <SaturnModel key="saturn" />}
               </div>
 
-              {/* Click hint - only show for non-home planets when active */}
-              {index !== 0 && index === orbitingPlanetIndex && (
-                <motion.div
-                  className="absolute text-center pointer-events-none"
-                  style={{
-                    left: `${PLANET_DIAMETER / 2 - 100}px`,
-                    top: `${PLANET_DIAMETER + 30}px`,
-                    width: '200px',
-                  }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <p className="text-sm text-cyan-400 font-medium">Click to explore →</p>
-                </motion.div>
-              )}
             </div>
           );
         })}
@@ -477,15 +461,15 @@ export function PlanetaryNavigator() {
         </motion.button>
       </div>
 
-      {/* Current Planet Info - Moved higher to avoid overlap */}
-      <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-40">
+      {/* Current Planet Info - Positioned below logo */}
+      <div className="fixed top-32 left-1/2 transform -translate-x-1/2 z-40">
         <motion.div
           key={orbitingPlanetIndex}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="px-6 py-3 rounded-full bg-gray-900/70 backdrop-blur-md border border-cyan-500/30"
+          className="px-10 py-5 rounded-full bg-gray-900/70 backdrop-blur-md border-2 border-cyan-500/40 shadow-lg shadow-cyan-500/30"
         >
-          <h3 className="text-xl font-bold text-white text-center">
+          <h3 className="text-3xl font-bold text-white text-center">
             {PLANETS[orbitingPlanetIndex].name}
           </h3>
         </motion.div>
@@ -510,96 +494,6 @@ export function PlanetaryNavigator() {
         </motion.button>
       </div>
 
-      {/* Tutorial Overlay - First visit */}
-      {showTutorial && orbitingPlanetIndex === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 pointer-events-none"
-        >
-          {/* Rocket drag hint - positioned to the side */}
-          <motion.div
-            className="absolute"
-            style={{
-              left: rocketPos ? `${rocketPos.x + 100}px` : '50%',
-              top: rocketPos ? `${rocketPos.y - 50}px` : '50%'
-            }}
-            animate={{
-              x: [0, 10, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <div className="px-4 py-2 bg-cyan-500/90 backdrop-blur-md rounded-full border-2 border-cyan-300 shadow-lg shadow-cyan-500/50">
-              <p className="text-white font-semibold text-xs whitespace-nowrap">
-                🚀 Drag me!
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Panning zone indicators */}
-          <motion.div
-            className="absolute left-0 top-0 bottom-0 w-1/6 bg-gradient-to-r from-cyan-500/20 to-transparent border-r border-cyan-500/30"
-            animate={{
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-              <ChevronLeft className="w-12 h-12 text-cyan-300" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="absolute right-0 top-0 bottom-0 w-1/6 bg-gradient-to-l from-cyan-500/20 to-transparent border-l border-cyan-500/30"
-            animate={{
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1
-            }}
-          >
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-              <ChevronRight className="w-12 h-12 text-cyan-300" />
-            </div>
-          </motion.div>
-
-          {/* Instruction - Positioned on the side to avoid overlap */}
-          <div className="absolute top-1/2 right-8 transform -translate-y-1/2">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1 }}
-              className="px-6 py-4 bg-gray-900/90 backdrop-blur-md rounded-2xl border border-cyan-500/40 shadow-xl max-w-xs"
-            >
-              <p className="text-cyan-300 text-sm leading-relaxed">
-                Drag the rocket to the <span className="text-cyan-400 font-bold">glowing edges</span> to explore other planets 🌟
-              </p>
-            </motion.div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Dismiss tutorial button */}
-      {showTutorial && (
-        <button
-          onClick={() => setShowTutorial(false)}
-          className="fixed top-6 right-6 z-50 px-4 py-2 bg-gray-900/70 backdrop-blur-md border border-cyan-500/30 text-cyan-300 rounded-full hover:bg-gray-900/90 transition-all text-sm"
-        >
-          Got it! ✨
-        </button>
-      )}
     </div>
   );
 }
