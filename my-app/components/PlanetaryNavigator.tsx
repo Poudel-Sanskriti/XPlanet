@@ -6,6 +6,7 @@ import { ParallaxStars } from './ParallaxStars';
 import { PlanetScene } from './Planet3D';
 import { UserProfileBadge } from './UserProfileBadge';
 import { useRouter } from 'next/navigation';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 type PlanetType = 'earth' | 'mars' | 'jupiter' | 'saturn';
 
@@ -36,6 +37,8 @@ export function PlanetaryNavigator() {
   const [isMounted, setIsMounted] = useState(false);
   const [isFlying, setIsFlying] = useState(false);
   const [panningEnabled, setPanningEnabled] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(true);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollX = useMotionValue(0);
@@ -98,6 +101,20 @@ export function PlanetaryNavigator() {
       scrollX.set(targetScroll);
     }
   }, [rocketAngle, orbitingPlanetIndex, isDraggingRocket, isFlying, isMounted, screenWidth]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePreviousPlanet();
+      } else if (e.key === 'ArrowRight') {
+        handleNextPlanet();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [orbitingPlanetIndex, isFlying]);
 
   // Find nearest planet to a position
   const findNearestPlanet = (x: number, y: number): number => {
@@ -172,6 +189,8 @@ export function PlanetaryNavigator() {
 
   const handleRocketDragStart = () => {
     setIsDraggingRocket(true);
+    setShowTutorial(false);
+    setHasInteracted(true);
   };
 
   const handleRocketDragEnd = (x: number, y: number) => {
@@ -247,6 +266,42 @@ export function PlanetaryNavigator() {
     }
   };
 
+  // Navigate to previous planet
+  const handlePreviousPlanet = () => {
+    if (orbitingPlanetIndex > 0 && !isFlying) {
+      const targetIndex = orbitingPlanetIndex - 1;
+      const targetScroll = -targetIndex * screenWidth;
+
+      // Smooth scroll to previous planet
+      animate(scrollX.get(), targetScroll, {
+        duration: 1,
+        ease: 'easeInOut',
+        onUpdate: (v) => scrollX.set(v),
+        onComplete: () => {
+          setOrbitingPlanetIndex(targetIndex);
+        }
+      });
+    }
+  };
+
+  // Navigate to next planet
+  const handleNextPlanet = () => {
+    if (orbitingPlanetIndex < PLANETS.length - 1 && !isFlying) {
+      const targetIndex = orbitingPlanetIndex + 1;
+      const targetScroll = -targetIndex * screenWidth;
+
+      // Smooth scroll to next planet
+      animate(scrollX.get(), targetScroll, {
+        duration: 1,
+        ease: 'easeInOut',
+        onUpdate: (v) => scrollX.set(v),
+        onComplete: () => {
+          setOrbitingPlanetIndex(targetIndex);
+        }
+      });
+    }
+  };
+
   // Don't render until mounted to avoid hydration mismatch
   if (!isMounted) {
     return (
@@ -290,23 +345,22 @@ export function PlanetaryNavigator() {
             >
               <PlanetScene type={planet.type} className="w-full h-full cursor-pointer" />
 
-              {/* Planet Label */}
-              <motion.div
-                className="absolute text-center"
-                style={{
-                  left: `${PLANET_DIAMETER / 2 - 100}px`,
-                  top: `${PLANET_DIAMETER + 50}px`,
-                  width: '200px',
-                }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: index === orbitingPlanetIndex ? 1 : 0.5, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <h2 className="text-2xl font-bold text-white mb-2">{planet.name}</h2>
-                {index !== 0 && index === orbitingPlanetIndex && (
-                  <p className="text-sm text-cyan-400">Click to explore →</p>
-                )}
-              </motion.div>
+              {/* Click hint - only show for non-home planets when active */}
+              {index !== 0 && index === orbitingPlanetIndex && (
+                <motion.div
+                  className="absolute text-center pointer-events-none"
+                  style={{
+                    left: `${PLANET_DIAMETER / 2 - 100}px`,
+                    top: `${PLANET_DIAMETER + 30}px`,
+                    width: '200px',
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <p className="text-sm text-cyan-400 font-medium">Click to explore →</p>
+                </motion.div>
+              )}
             </div>
           );
         })}
@@ -355,6 +409,154 @@ export function PlanetaryNavigator() {
             readOnly
           />
         </motion.div>
+      )}
+
+      {/* Navigation Buttons */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-4 z-50">
+        {/* Previous Button */}
+        <motion.button
+          onClick={handlePreviousPlanet}
+          disabled={orbitingPlanetIndex === 0 || isFlying}
+          className="p-4 rounded-full bg-cyan-500/20 backdrop-blur-md border border-cyan-500/50
+                   text-cyan-300 hover:bg-cyan-500/30 hover:scale-110 transition-all
+                   disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </motion.button>
+
+        {/* Planet Indicators */}
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-900/50 backdrop-blur-md border border-cyan-500/30">
+          {PLANETS.map((planet, index) => (
+            <div
+              key={planet.type}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === orbitingPlanetIndex
+                  ? 'bg-cyan-400 w-8'
+                  : 'bg-gray-500 hover:bg-gray-400'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Next Button */}
+        <motion.button
+          onClick={handleNextPlanet}
+          disabled={orbitingPlanetIndex === PLANETS.length - 1 || isFlying}
+          className="p-4 rounded-full bg-cyan-500/20 backdrop-blur-md border border-cyan-500/50
+                   text-cyan-300 hover:bg-cyan-500/30 hover:scale-110 transition-all
+                   disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronRight className="w-6 h-6" />
+        </motion.button>
+      </div>
+
+      {/* Current Planet Info - Moved higher to avoid overlap */}
+      <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-40">
+        <motion.div
+          key={orbitingPlanetIndex}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="px-6 py-3 rounded-full bg-gray-900/70 backdrop-blur-md border border-cyan-500/30"
+        >
+          <h3 className="text-xl font-bold text-white text-center">
+            {PLANETS[orbitingPlanetIndex].name}
+          </h3>
+        </motion.div>
+      </div>
+
+      {/* Tutorial Overlay - First visit */}
+      {showTutorial && orbitingPlanetIndex === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 pointer-events-none"
+        >
+          {/* Rocket drag hint - positioned to the side */}
+          <motion.div
+            className="absolute"
+            style={{
+              left: rocketPos ? `${rocketPos.x + 100}px` : '50%',
+              top: rocketPos ? `${rocketPos.y - 50}px` : '50%'
+            }}
+            animate={{
+              x: [0, 10, 0],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <div className="px-4 py-2 bg-cyan-500/90 backdrop-blur-md rounded-full border-2 border-cyan-300 shadow-lg shadow-cyan-500/50">
+              <p className="text-white font-semibold text-xs whitespace-nowrap">
+                🚀 Drag me!
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Panning zone indicators */}
+          <motion.div
+            className="absolute left-0 top-0 bottom-0 w-1/6 bg-gradient-to-r from-cyan-500/20 to-transparent border-r border-cyan-500/30"
+            animate={{
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+              <ChevronLeft className="w-12 h-12 text-cyan-300" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="absolute right-0 top-0 bottom-0 w-1/6 bg-gradient-to-l from-cyan-500/20 to-transparent border-l border-cyan-500/30"
+            animate={{
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+          >
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+              <ChevronRight className="w-12 h-12 text-cyan-300" />
+            </div>
+          </motion.div>
+
+          {/* Instruction - Positioned on the side to avoid overlap */}
+          <div className="absolute top-1/2 right-8 transform -translate-y-1/2">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1 }}
+              className="px-6 py-4 bg-gray-900/90 backdrop-blur-md rounded-2xl border border-cyan-500/40 shadow-xl max-w-xs"
+            >
+              <p className="text-cyan-300 text-sm leading-relaxed">
+                Drag the rocket to the <span className="text-cyan-400 font-bold">glowing edges</span> to explore other planets 🌟
+              </p>
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Dismiss tutorial button */}
+      {showTutorial && (
+        <button
+          onClick={() => setShowTutorial(false)}
+          className="fixed top-6 right-6 z-50 px-4 py-2 bg-gray-900/70 backdrop-blur-md border border-cyan-500/30 text-cyan-300 rounded-full hover:bg-gray-900/90 transition-all text-sm"
+        >
+          Got it! ✨
+        </button>
       )}
     </div>
   );
